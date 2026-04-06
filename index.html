@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}ACorp — Корпоративный портал{% endblock %}
+
+{% block extra_style %}
+<style>
+  .hero { min-height:60vh; display:flex; flex-direction:column; justify-content:center; position:relative; padding:4rem 0 3rem; }
+  .hero::before { content:'ACORP'; position:absolute; font-family:var(--font-h); font-size:20vw; font-weight:700; color:rgba(201,168,76,.03); top:50%; left:50%; transform:translate(-50%,-50%); white-space:nowrap; pointer-events:none; user-select:none; }
+  .hero .eyebrow { font-size:.72rem; letter-spacing:.16em; text-transform:uppercase; color:var(--gold); margin-bottom:1.2rem; }
+  .hero h1 { font-family:var(--font-h); font-size:clamp(2.8rem,5vw,4.5rem); font-weight:500; line-height:1.08; max-width:660px; margin-bottom:1.5rem; }
+  .hero h1 em { font-style:italic; color:var(--gold); }
+  .hero p { color:var(--silver); max-width:480px; line-height:1.7; margin-bottom:2.5rem; }
+  .sep { display:flex; align-items:center; gap:1.5rem; margin:3rem 0; }
+  .sep::before, .sep::after { content:''; flex:1; height:1px; background:var(--border); }
+  .sep span { font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--silver); white-space:nowrap; }
+  .feature-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; margin-top:2rem; }
+  .feature-card { background:var(--navy2); border:1px solid var(--border); border-radius:var(--radius); padding:1.75rem; }
+  .feature-card .icon { width:38px; height:38px; border:1px solid var(--border); border-radius:var(--radius); display:flex; align-items:center; justify-content:center; font-size:1rem; margin-bottom:1rem; }
+  .feature-card h3 { font-family:var(--font-h); font-size:1.1rem; font-weight:600; margin-bottom:.5rem; }
+  .feature-card p { font-size:.83rem; color:var(--silver); line-height:1.6; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero animate">
+  <div class="eyebrow">ACorp Internal Portal</div>
+  <h1>Единая платформа для <em>управления</em> персоналом и данными компании</h1>
+  <p>Создан для демонстрации дипломного проекта <em>Energo University</em></p>
+  <p>Ахтан Алтынай СИБ 22-13А</p>
+  <div>
+    <a href="{{ url_for('login') }}" class="btn btn-primary">Войти в систему</a>
+  </div>
+</section>
+
+<div class="sep animate delay-1"><span>Обзор</span></div>
+
+<div class="metrics animate delay-2">
+  <div class="stat-card">
+    <div class="stat-label">Сотрудников</div>
+    <div class="stat-value">{{ stats.employees }}</div>
+    <div class="stat-sub">Во всех подразделениях</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Подразделений</div>
+    <div class="stat-value">{{ stats.departments }}</div>
+    <div class="stat-sub">Активных отделов</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Офисов</div>
+    <div class="stat-value">2</div>
+    <div class="stat-sub">Здание А и Здание Б</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Год основания</div>
+    <div class="stat-value">2025</div>
+    <div class="stat-sub">Начало работы</div>
+  </div>
+</div>
+
+<div class="sep animate delay-3"><span>Возможности платформы</span></div>
+
+<div class="feature-grid animate delay-4">
+  <div class="feature-card">
+    <div class="icon">👥</div>
+    <h3>Справочник сотрудников</h3>
+    <p>Поиск и просмотр всех сотрудников компании. Контактные данные, должности и структура подчинения.</p>
+  </div>
+  <div class="feature-card">
+    <div class="icon">🏢</div>
+    <h3>Управление отделами</h3>
+    <p>Информация о бюджетах подразделений, численности персонала, расположении офисов и руководстве.</p>
+  </div>
+  <div class="feature-card">
+    <div class="icon">🔐</div>
+    <h3>Разграничение доступа</h3>
+    <p>Ролевая модель доступа: администратор, менеджер, наблюдатель. Конфиденциальные данные защищены.</p>
+  </div>
+</div>
+{% endblock %}

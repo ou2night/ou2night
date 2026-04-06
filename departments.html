@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Отделы — ACorp Portal{% endblock %}
+
+{% block extra_style %}
+<style>
+  .dept-layout { display:grid; grid-template-columns:280px 1fr; gap:2rem; align-items:start; }
+  .dept-list-card { position:sticky; top:90px; }
+  .dept-list-card .card-title { margin-bottom:.75rem; }
+  .dept-item { display:block; padding:.75rem 1rem; border-radius:calc(var(--radius) - 2px); text-decoration:none; color:var(--silver); font-size:.85rem; transition:all .15s; border:1px solid transparent; }
+  .dept-item:hover { color:var(--white); background:var(--glow); }
+  .dept-item.active { color:var(--gold); background:var(--glow); border-color:var(--border); }
+  .dept-item .dname { font-weight:500; }
+  .dept-item .dloc { font-size:.73rem; margin-top:.1rem; opacity:.7; }
+  .dept-detail-head { margin-bottom:1.75rem; padding-bottom:1.25rem; border-bottom:1px solid var(--border); }
+  .dept-detail-head h2 { font-family:var(--font-h); font-size:1.9rem; font-weight:500; margin-bottom:.25rem; }
+  .dept-detail-head .meta { color:var(--silver); font-size:.83rem; display:flex; gap:1.5rem; flex-wrap:wrap; margin-top:.5rem; }
+  .info-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:2rem; }
+  .info-box { background:var(--navy3); border:1px solid var(--border); border-radius:var(--radius); padding:1.2rem 1.4rem; }
+  .info-box .ib-label { font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; color:var(--silver); margin-bottom:.4rem; }
+  .info-box .ib-value { font-family:var(--font-h); font-size:1.3rem; font-weight:600; color:var(--gold); }
+  .placeholder-msg { color:var(--silver); padding:4rem; text-align:center; font-size:.9rem; }
+  .placeholder-msg .icon { font-size:2rem; margin-bottom:1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header animate">
+  <div class="eyebrow">Организационная структура</div>
+  <h1>Подразделения</h1>
+  <p>Выберите подразделение для просмотра подробной информации и списка сотрудников.</p>
+</div>
+
+{% if error %}
+<div class="alert alert-error animate">{{ error }}</div>
+{% endif %}
+
+<div class="dept-layout animate delay-1">
+  <div class="card dept-list-card">
+    <div class="card-title">Отделы компании</div>
+    {% for d in all_depts %}
+    <a href="{{ url_for('departments', id=d.id) }}"
+       class="dept-item {{ 'active' if dept_id|string == d.id|string }}">
+      <div class="dname">{{ d.name }}</div>
+      <div class="dloc">{{ d.location }}</div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <div>
+    {% if dept %}
+    <div class="card animate">
+      <div class="dept-detail-head">
+        <h2>{{ dept.name }}</h2>
+        <div class="meta">
+          <span>📍 {{ dept.location }}</span>
+          <span>👤 {{ dept.head }}</span>
+        </div>
+      </div>
+      <div class="info-grid">
+        <div class="info-box">
+          <div class="ib-label">Годовой бюджет</div>
+          <div class="ib-value">{{ '{:,.0f} ₽'.format(dept.budget) }}</div>
+        </div>
+        <div class="info-box">
+          <div class="ib-label">Численность</div>
+          <div class="ib-value">{{ members|length }}</div>
+        </div>
+        <div class="info-box">
+          <div class="ib-label">Руководитель</div>
+          <div class="ib-value" style="font-size:1rem;">{{ dept.head }}</div>
+        </div>
+      </div>
+      {% if members %}
+      <div class="card-title" style="margin-top:.5rem;">Состав отдела</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Сотрудник</th><th>Должность</th><th>Email</th></tr>
+          </thead>
+          <tbody>
+            {% for m in members %}
+            <tr>
+              <td>{{ m.full_name }}</td>
+              <td class="muted">{{ m.position }}</td>
+              <td class="muted">{{ m.email }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+    </div>
+    {% elif not error %}
+    <div class="card">
+      <div class="placeholder-msg">
+        <div class="icon">🏢</div>
+        <p>Выберите подразделение из списка слева.</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

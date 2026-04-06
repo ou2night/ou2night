@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Вход — ACorp Portal{% endblock %}
+
+{% block extra_style %}
+<style>
+  main { display:flex; align-items:center; justify-content:center; padding:4rem 2rem; }
+  .login-wrap { width:100%; max-width:440px; animation:fadeUp .4s ease both; }
+  .login-brand { text-align:center; margin-bottom:2.5rem; }
+  .login-brand .mark { width:52px; height:52px; border:2px solid var(--gold); display:flex; align-items:center; justify-content:center; font-family:var(--font-h); font-size:1.5rem; font-weight:700; color:var(--gold); margin:0 auto 1rem; }
+  .login-brand h2 { font-family:var(--font-h); font-size:1.9rem; font-weight:500; }
+  .login-brand p { font-size:.82rem; color:var(--silver); margin-top:.35rem; }
+  .login-card { background:var(--navy2); border:1px solid var(--border); border-radius:var(--radius); padding:2.25rem 2.5rem 2.5rem; }
+  .login-card .btn-primary { width:100%; justify-content:center; padding:.8rem; font-size:.82rem; }
+  .login-footer { text-align:center; margin-top:1.5rem; font-size:.75rem; color:var(--silver); line-height:1.6; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-wrap">
+  <div class="login-brand">
+    <div class="mark">A</div>
+    <h2>ACorp Portal</h2>
+    <p>Войдите в корпоративную систему</p>
+  </div>
+  <div class="login-card">
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+    <form method="POST" action="{{ url_for('login') }}">
+      <div class="form-group">
+        <label for="username">Логин</label>
+        <input type="text" id="username" name="username" placeholder="Введите логин" autocomplete="username" required/>
+      </div>
+      <div class="form-group" style="margin-bottom:1.75rem;">
+        <label for="password">Пароль</label>
+        <input type="password" id="password" name="password" placeholder="Введите пароль" autocomplete="current-password" required/>
+      </div>
+      <button type="submit" class="btn btn-primary">Войти</button>
+    </form>
+  </div>
+  <div class="login-footer">
+    Доступ только для сотрудников ACorp.<br/>
+    Все попытки входа регистрируются и контролируются.
+  </div>
+</div>
+{% endblock %}

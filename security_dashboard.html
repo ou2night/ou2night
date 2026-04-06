@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}Security Dashboard — ACorp Portal{% endblock %}
+
+{% block extra_style %}
+<style>
+  .sec-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-top:1.5rem; }
+  .threat-bar { display:flex; align-items:center; gap:1rem; margin-bottom:.75rem; }
+  .threat-bar .label { font-size:.78rem; color:var(--silver); width:160px; flex-shrink:0; }
+  .threat-bar .bar-wrap { flex:1; background:var(--navy3); border-radius:20px; height:8px; overflow:hidden; }
+  .threat-bar .bar-fill { height:100%; border-radius:20px; transition:width .6s ease; }
+  .threat-bar .count { font-size:.78rem; color:var(--gold); width:30px; text-align:right; flex-shrink:0; }
+  .badge-critical { background:rgba(220,38,38,.15); border:1px solid rgba(220,38,38,.4); color:#f87171; font-size:.68rem; padding:.15rem .6rem; border-radius:20px; }
+  .badge-high     { background:rgba(251,146,60,.15); border:1px solid rgba(251,146,60,.4); color:#fb923c; font-size:.68rem; padding:.15rem .6rem; border-radius:20px; }
+  .badge-medium   { background:rgba(250,204,21,.15); border:1px solid rgba(250,204,21,.4); color:#facc15; font-size:.68rem; padding:.15rem .6rem; border-radius:20px; }
+  .badge-low      { background:rgba(74,222,128,.15); border:1px solid rgba(74,222,128,.4); color:#4ade80; font-size:.68rem; padding:.15rem .6rem; border-radius:20px; }
+  .ip-row { display:flex; align-items:center; justify-content:space-between; padding:.6rem 0; border-bottom:1px solid rgba(255,255,255,.04); }
+  .ip-row:last-child { border-bottom:none; }
+  .ip-addr { font-family:monospace; font-size:.82rem; color:var(--white); }
+  .ip-count { font-size:.78rem; color:var(--gold); font-weight:500; }
+  .chart-wrap { position:relative; height:160px; display:flex; align-items:flex-end; gap:6px; padding-top:1rem; }
+  .chart-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+  .chart-bar { width:100%; background:linear-gradient(180deg,var(--gold),rgba(201,168,76,.3)); border-radius:3px 3px 0 0; transition:height .6s ease; min-height:2px; }
+  .chart-label { font-size:.6rem; color:var(--silver); white-space:nowrap; }
+  .empty-state { text-align:center; padding:3rem; color:var(--silver); font-size:.85rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header animate">
+  <div class="eyebrow">Модуль IDS</div>
+  <h1>Security Dashboard</h1>
+  <p>Мониторинг атак в реальном времени — ACorp Portal</p>
+</div>
+
+<!-- Метрики -->
+<div class="metrics animate delay-1">
+  <div class="stat-card">
+    <div class="stat-label">Всего атак</div>
+    <div class="stat-value">{{ stats.total }}</div>
+    <div class="stat-sub">за всё время</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">За сегодня</div>
+    <div class="stat-value">{{ stats.today }}</div>
+    <div class="stat-sub">{{ today_date }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Уникальных IP</div>
+    <div class="stat-value">{{ stats.unique_ips }}</div>
+    <div class="stat-sub">источников атак</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Забанено IP</div>
+    <div class="stat-value">{{ stats.banned }}</div>
+    <div class="stat-sub">активных банов</div>
+  </div>
+</div>
+
+<div class="sec-grid animate delay-2">
+
+  <!-- График по дням -->
+  <div class="card">
+  <div class="card-title">Атаки за последние 30 дней</div>
+{% if daily_data %}
+<div style="position:relative; height:180px; margin-top:1rem;">
+  <!-- Ось Y -->
+  <div style="position:absolute; left:0; top:0; bottom:24px; width:36px; display:flex; flex-direction:column; justify-content:space-between; align-items:flex-end; padding-right:6px;">
+    {% set max_val = daily_data | map(attribute='cnt') | max %}
+    <span style="font-size:.6rem; color:var(--silver);">{{ max_val }}</span>
+    <span style="font-size:.6rem; color:var(--silver);">{{ (max_val / 2)|int }}</span>
+    <span style="font-size:.6rem; color:var(--silver);">0</span>
+  </div>
+  <!-- Подпись оси Y -->
+  <div style="position:absolute; left:-28px; top:50%; transform:rotate(-90deg) translateX(-50%); font-size:.6rem; color:var(--silver); white-space:nowrap;">Число атак</div>
+  <!-- График -->
+  <div style="position:absolute; left:40px; right:0; top:0; bottom:24px; border-left:1px solid var(--border); border-bottom:1px solid var(--border);">
+   <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style="overflow:visible;">
+  {% set max_val = daily_data | map(attribute='cnt') | max %}
+  {% set n = daily_data|length %}
+  <!-- Линия -->
+  <polyline
+    fill="none"
+    stroke="#c9a84c"
+    stroke-width="1.5"
+    vector-effect="non-scaling-stroke"
+    points="{% for day in daily_data %}{{ loop.index0 * (100.0/(n-1 if n>1 else 1)) }},{{ 100 - (day.cnt / max_val * 90) }} {% endfor %}"
+  />
+  <!-- Точки -->
+  {% for day in daily_data %}
+  <circle
+    cx="{{ loop.index0 * (100.0/(n-1 if n>1 else 1)) }}"
+    cy="{{ 100 - (day.cnt / max_val * 90) }}"
+    r="1.5"
+    fill="#c9a84c"
+    vector-effect="non-scaling-stroke"
+  >
+    <title>{{ day.cnt }} атак — {{ day.day }}</title>
+  </circle>
+  {% endfor %}
+  </svg>
+  </div>
+  <!-- Ось X — даты -->
+  <div style="position:absolute; left:40px; right:0; bottom:0; display:flex; justify-content:space-between;">
+    {% for day in daily_data %}
+    <span style="font-size:.58rem; color:var(--silver);">{{ day.day[-5:] }}</span>
+    {% endfor %}
+  </div>
+</div>
+<!-- Подпись оси X -->
+<div style="text-align:center; font-size:.6rem; color:var(--silver); margin-top:4px;">Дата</div>
+{% else %}
+<div class="empty-state">Атак не зафиксировано</div>
+{% endif %}
+  </div>
+
+  <!-- Топ IP -->
+  <div class="card">
+    <div class="card-title">Топ источников атак</div>
+    {% if top_ips %}
+      {% for row in top_ips %}
+      <div class="ip-row">
+        <span class="ip-addr">{{ row.ip }}</span>
+        <span class="ip-count">{{ row.cnt }} атак</span>
+      </div>
+      {% endfor %}
+    {% else %}
+    <div class="empty-state">Нет данных</div>
+    {% endif %}
+  </div>
+
+  <!-- Типы атак -->
+  <div class="card">
+    <div class="card-title">Распределение по типам атак</div>
+    {% if attack_types %}
+      {% set max_t = attack_types | map(attribute='cnt') | max %}
+      {% for row in attack_types %}
+      <div class="threat-bar">
+        <span class="label">{{ row.attack_type[:22] }}</span>
+        <div class="bar-wrap">
+          <div class="bar-fill" style="width:{{ ((row.cnt / max_t) * 100)|int }}%; background:linear-gradient(90deg,var(--gold),rgba(201,168,76,.4));"></div>
+        </div>
+        <span class="count">{{ row.cnt }}</span>
+      </div>
+      {% endfor %}
+    {% else %}
+    <div class="empty-state">Нет данных</div>
+    {% endif %}
+  </div>
+
+  <!-- Уровни угроз -->
+  <div class="card">
+    <div class="card-title">Уровни угроз</div>
+    {% if threat_levels %}
+      {% set max_l = threat_levels | map(attribute='cnt') | max %}
+      {% for row in threat_levels %}
+      <div class="threat-bar">
+        <span class="label">{{ row.threat }}</span>
+        <div class="bar-wrap">
+          <div class="bar-fill" style="width:{{ ((row.cnt / max_l) * 100)|int }}%;
+            background:{% if row.threat == 'КРИТИЧЕСКИЙ' %}#ef4444{% elif row.threat == 'ВЫСОКИЙ' %}#f97316{% else %}#eab308{% endif %};"></div>
+        </div>
+        <span class="count">{{ row.cnt }}</span>
+      </div>
+      {% endfor %}
+    {% else %}
+    <div class="empty-state">Нет данных</div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Последние события -->
+<div class="card animate delay-3" style="margin-top:1.5rem;">
+  <div class="card-title">Последние 10 событий</div>
+  {% if recent_attacks %}
+  <div class="table-wrap" style="margin-top:1rem;">
+    <table>
+      <thead>
+        <tr>
+          <th>ID события</th>
+          <th>Время</th>
+          <th>IP-адрес</th>
+          <th>Поле</th>
+          <th>Тип атаки</th>
+          <th>Балл</th>
+          <th>Уровень</th>
+          <th>Решение</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in recent_attacks %}
+        <tr>
+          <td class="muted" style="font-family:monospace;font-size:.75rem;">{{ a.event_id }}</td>
+          <td class="muted">{{ a.timestamp }}</td>
+          <td><span style="font-family:monospace;font-size:.82rem;">{{ a.ip }}</span></td>
+          <td><span class="pill">{{ a.field }}</span></td>
+          <td>{{ a.attack_type }}</td>
+          <td style="color:var(--gold);font-weight:500;">{{ a.score }}</td>
+          <td>
+            {% if a.threat == 'КРИТИЧЕСКИЙ' %}
+              <span class="badge-critical">{{ a.threat }}</span>
+            {% elif a.threat == 'ВЫСОКИЙ' %}
+              <span class="badge-high">{{ a.threat }}</span>
+            {% else %}
+              <span class="badge-medium">{{ a.threat }}</span>
+            {% endif %}
+          </td>
+          <td>{{ a.decision }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">Атак не зафиксировано</div>
+  {% endif %}
+</div>
+{% endblock %}

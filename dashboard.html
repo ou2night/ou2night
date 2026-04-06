@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Главная — ACorp Portal{% endblock %}
+
+{% block extra_style %}
+<style>
+  .welcome-band { background:linear-gradient(135deg,var(--navy3) 0%,var(--navy2) 100%); border:1px solid var(--border); border-radius:var(--radius); padding:2rem 2.5rem; margin-bottom:2rem; display:flex; align-items:center; justify-content:space-between; gap:2rem; }
+  .welcome-band h2 { font-family:var(--font-h); font-size:1.7rem; font-weight:500; margin-bottom:.3rem; }
+  .welcome-band h2 span { color:var(--gold); }
+  .welcome-band p { color:var(--silver); font-size:.85rem; }
+  .role-badge { background:var(--glow); border:1px solid var(--border); border-radius:30px; padding:.4rem 1.2rem; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); white-space:nowrap; }
+  .quick-actions { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; margin-bottom:2rem; }
+  .action-link { background:var(--navy2); border:1px solid var(--border); border-radius:var(--radius); padding:1.3rem 1.6rem; text-decoration:none; display:flex; align-items:center; gap:1rem; transition:border-color .2s,background .2s; }
+  .action-link:hover { border-color:var(--gold); background:var(--glow); }
+  .action-link .icon { font-size:1.4rem; }
+  .action-link .label { font-size:.82rem; font-weight:500; color:var(--white); }
+  .action-link .sub { font-size:.75rem; color:var(--silver); margin-top:.15rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="welcome-band animate">
+  <div>
+    <h2>Добро пожаловать, <span>{{ session.username }}</span></h2>
+    <p>Последние изменения в кадровом составе ACorp.</p>
+  </div>
+  <div class="role-badge">{{ session.role }}</div>
+</div>
+
+<div class="quick-actions animate delay-1">
+  <a href="{{ url_for('employees') }}" class="action-link">
+    <div class="icon">👤</div>
+    <div>
+      <div class="label">Справочник сотрудников</div>
+      <div class="sub">Поиск и просмотр персонала</div>
+    </div>
+  </a>
+  <a href="{{ url_for('departments') }}" class="action-link">
+    <div class="icon">🏢</div>
+    <div>
+      <div class="label">Подразделения</div>
+      <div class="sub">Структура и состав отделов</div>
+    </div>
+  </a>
+</div>
+
+<div class="card animate delay-2">
+  <div class="card-title">Недавно добавленные сотрудники</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Сотрудник</th>
+          <th>Должность</th>
+          <th>Подразделение</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in recent %}
+        <tr>
+          <td>{{ r.full_name }}</td>
+          <td class="muted">{{ r.position }}</td>
+          <td><span class="pill">{{ r.dept }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

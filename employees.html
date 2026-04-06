@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Сотрудники — ACorp Portal{% endblock %}
+
+{% block extra_style %}
+<style>
+  .search-bar { display:flex; gap:.75rem; margin-bottom:2rem; align-items:flex-end; }
+  .search-bar .form-group { flex:1; margin-bottom:0; }
+  .result-meta { font-size:.78rem; color:var(--silver); margin-bottom:1rem; }
+  .result-meta strong { color:var(--gold); }
+  .name-cell strong { display:block; font-weight:500; color:var(--white); }
+  .name-cell span { font-size:.77rem; color:var(--silver); }
+  .salary { color:var(--gold); font-size:.88rem; }
+  .empty-state { text-align:center; padding:3rem; color:var(--silver); }
+  .empty-state p { margin-top:.5rem; font-size:.85rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header animate">
+  <div class="eyebrow">Управление персоналом</div>
+  <h1>Справочник сотрудников</h1>
+  <p>Поиск и просмотр всего персонала компании ACorp.</p>
+</div>
+
+<form method="GET" action="{{ url_for('employees') }}">
+  <div class="search-bar animate delay-1">
+    <div class="form-group">
+      <label for="search">Поиск сотрудников</label>
+      <input type="search" id="search" name="search" placeholder="Имя или должность…" value="{{ search }}"/>
+    </div>
+    <button type="submit" class="btn btn-primary">Найти</button>
+    {% if search %}
+    <a href="{{ url_for('employees') }}" class="btn btn-ghost">Сбросить</a>
+    {% endif %}
+  </div>
+</form>
+
+{% if error %}
+<div class="alert alert-error animate">{{ error }}</div>
+{% endif %}
+
+{% if search %}
+<div class="result-meta animate">
+  Результаты поиска по <strong>«{{ search }}»</strong> — найдено записей: {{ rows|length }}
+</div>
+{% endif %}
+
+<div class="card animate delay-2">
+  <div class="table-wrap">
+    {% if rows %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Сотрудник</th>
+          <th>Подразделение</th>
+          <th>Email</th>
+          <th>Телефон</th>
+          <th>Оклад</th>
+          <th>Дата найма</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in rows %}
+        <tr>
+          <td class="muted">{{ e.id }}</td>
+          <td class="name-cell">
+            <strong>{{ e.full_name }}</strong>
+            <span>{{ e.position }}</span>
+          </td>
+          <td><span class="pill">{{ e.dept_name or '—' }}</span></td>
+          <td class="muted">{{ e.email or '—' }}</td>
+          <td class="muted">{{ e.phone or '—' }}</td>
+          <td class="salary">{{ '{:,.0f} ₽'.format(e.salary | float) if e.salary else '—' }}</td>
+          <td class="muted">{{ e.hire_date }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div>🔍</div>
+      <p>Сотрудники не найдены{% if search %} по запросу «{{ search }}»{% endif %}.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
